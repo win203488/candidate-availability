@@ -372,6 +372,16 @@
     background: #eef2ff;
   }
  
+  .cal-grid .cal-date.is-past {
+    color: #d1d5db;
+    cursor: default;
+    text-decoration: line-through;
+  }
+ 
+  .cal-grid .cal-date.is-past:hover {
+    background: none;
+  }
+ 
   .cal-grid .cal-date.in-week {
     background: #eef2ff;
     color: #3730a3;
@@ -457,7 +467,7 @@
     <div class="field-group">
       <label>Your Time Zone *</label>
       <div class="hint">Select the time zone you will be entering your availability in.</div>
-      <select id="candidate-tz">
+      <select id="candidate-tz" onchange="rebuildAllTimeDropdowns()">
         <option value="" disabled selected>Select your time zone</option>
         <option value="0">Eastern Time (ET)</option>
         <option value="1">Central Time (CT)</option>
@@ -552,13 +562,19 @@
       html += `<div class="cal-date"></div>`;
     }
  
+    // Get today at midnight for past-date comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+ 
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(calYear, calMonth, d);
       const dow = date.getDay(); // 0=Sun, 1=Mon
       const isMonday = dow === 1;
+      const isPast = date < today;
  
       let classes = 'cal-date';
-      if (isMonday) classes += ' is-monday';
+      if (isMonday && !isPast) classes += ' is-monday';
+      if (isMonday && isPast) classes += ' is-past';
  
       // Highlight the full week if a Monday is selected
       if (selectedMonday) {
@@ -573,7 +589,7 @@
         }
       }
  
-      if (isMonday) {
+      if (isMonday && !isPast) {
         html += `<div class="${classes}" onclick="selectMonday(${calYear},${calMonth},${d})">${d}</div>`;
       } else {
         html += `<div class="${classes}">${d}</div>`;
@@ -628,18 +644,32 @@
     }
   });
  
-  // ---- Time Options (30 min increments, 7:00 AM to 10:00 PM) ----
-  function buildTimeOptions(selectedVal) {
+  // ---- Time Options (30 min increments, timezone-aware) ----
+  // startH = earliest local hour (9am), endH = latest local hour (7pm ET converted to local)
+  function getTimeRange() {
+    const tzVal = document.getElementById('candidate-tz').value;
+    const tzOffset = tzVal !== '' ? parseInt(tzVal) : 0; // offset: ET=0, CT=1, MT=2, PT=3
+    const startH = 9; // 9am local time
+    const endH = 19 - tzOffset; // 7pm ET = 19:00 ET, converted to local
+    return { startH: startH, endH: endH };
+  }
+ 
+  function buildTimeOptions(selectedVal, forField) {
+    const range = getTimeRange();
+    let startH = range.startH;
+    let endH = range.endH;
     let opts = '';
-    for (let h = 7; h <= 22; h++) {
+    let hasSelected = false;
+    for (let h = startH; h <= endH; h++) {
       for (let m = 0; m < 60; m += 30) {
-        if (h === 22 && m > 0) break;
+        if (h === endH && m > 0) break; // allow endH:00 but not endH:30
         const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
         const ampm = h < 12 ? 'AM' : 'PM';
         const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
         const displayM = m === 0 ? '00' : '30';
         const label = `${displayH}:${displayM} ${ampm}`;
         const sel = val === selectedVal ? ' selected' : '';
+        if (val === selectedVal) hasSelected = true;
         opts += `<option value="${val}"${sel}>${label}</option>`;
       }
     }
@@ -647,12 +677,43 @@
   }
  
   function buildTimeRow(day, fromVal, toVal) {
+    const range = getTimeRange();
+    // Clamp defaults to valid range
+    const clampedFrom = clampTime(fromVal, range.startH, range.endH);
+    const clampedTo = clampTime(toVal, range.startH, range.endH);
     return `<div class="time-row" data-day="${day}">
       <label>From</label>
-      <select onchange="validateRow(this)">${buildTimeOptions(fromVal)}</select>
+      <select onchange="validateRow(this)">${buildTimeOptions(clampedFrom, 'from')}</select>
       <label>To</label>
-      <select onchange="validateRow(this)">${buildTimeOptions(toVal)}</select>
+      <select onchange="validateRow(this)">${buildTimeOptions(clampedTo, 'to')}</select>
     </div>`;
+  }
+ 
+  function clampTime(val, minH, maxH) {
+    const [h, m] = val.split(':').map(Number);
+    if (h < minH) return `${String(minH).padStart(2,'0')}:00`;
+    if (h > maxH || (h === maxH && m > 0)) return `${String(maxH).padStart(2,'0')}:00`;
+    return val;
+  }
+ 
+  // Rebuild all time dropdowns when timezone changes
+  function rebuildAllTimeDropdowns() {
+    const range = getTimeRange();
+    DAYS.forEach(function(day) {
+      const slots = document.getElementById('slots-' + day);
+      if (!slots) return;
+      const rows = slots.querySelectorAll('.time-row');
+      rows.forEach(function(row) {
+        const selects = row.querySelectorAll('select');
+        const curFrom = selects[0].value;
+        const curTo = selects[1].value;
+        const clampedFrom = clampTime(curFrom, range.startH, range.endH);
+        const clampedTo = clampTime(curTo, range.startH, range.endH);
+        selects[0].innerHTML = buildTimeOptions(clampedFrom, 'from');
+        selects[1].innerHTML = buildTimeOptions(clampedTo, 'to');
+        validateRow(selects[0]);
+      });
+    });
   }
  
   // ---- Days / Availability ----
@@ -698,8 +759,11 @@
   function addSlot(day) {
     const slots = document.getElementById(`slots-${day}`);
     const addBtn = slots.querySelector('.add-slot-btn');
+    const range = getTimeRange();
+    const defaultFrom = `${String(range.startH).padStart(2,'0')}:00`;
+    const defaultTo = `${String(range.endH).padStart(2,'0')}:00`;
     const temp = document.createElement('div');
-    temp.innerHTML = buildTimeRow(day, '09:00', '17:00');
+    temp.innerHTML = buildTimeRow(day, defaultFrom, defaultTo);
     const row = temp.firstElementChild;
     slots.insertBefore(row, addBtn);
   }

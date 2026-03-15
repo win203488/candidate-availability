@@ -843,11 +843,40 @@
     const comments = document.getElementById('comments').value;
     if (comments) summary += `\nComments: ${comments}`;
 
-    const mailtoBody = encodeURIComponent(summary);
-    const mailtoSubject = encodeURIComponent(`${name} — Call Time Availability for week of ${week}`);
-    window.location.href = `mailto:win@e3nstrategies.com?subject=${mailtoSubject}&body=${mailtoBody}`;
+    // Submit via Formspree (auto-sends to win@e3nstrategies.com)
+    var submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
 
-    document.getElementById('success-banner').style.display = 'block';
+    fetch('https://formspree.io/f/xjgaeopn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: name + ' — Call Time Availability for week of ' + week,
+        candidate_name: name,
+        timezone: tzLabel,
+        week_of: week,
+        availability_summary: summary,
+        events: events || '(none)',
+        comments: comments || '(none)'
+      })
+    })
+    .then(function(response) {
+      if (response.ok) {
+        document.getElementById('success-banner').style.display = 'block';
+        submitBtn.textContent = 'Submitted!';
+        submitBtn.style.background = '#059669';
+      } else {
+        return response.json().then(function(data) {
+          throw new Error(data.error || 'Submission failed');
+        });
+      }
+    })
+    .catch(function(err) {
+      alert('Something went wrong: ' + err.message + '. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Availability';
+    });
   }
 </script>
 

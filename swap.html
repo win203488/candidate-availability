@@ -109,11 +109,11 @@
     <div class="banner" id="banner"></div>
     <div style="margin-top:28px;border-top:1px solid var(--line);padding-top:22px">
       <p class="center"><b>Asked around and nobody can cover it?</b></p>
-      <p class="hint center">Pick the session and the time above, then ask Justin to release it. It stays yours until he approves.</p>
-      <button type="button" class="again" id="relopen">Ask Justin to release this time</button>
+      <p class="hint center">Pick the session and the time above, then request a release from management. It stays yours until it's approved.</p>
+      <button type="button" class="again" id="relopen">Request a release</button>
       <div id="relbox" style="display:none;margin-top:16px">
         <div class="field"><label for="reason">Why can't you cover it, and who did you ask?</label><textarea id="reason" rows="2"></textarea></div>
-        <button class="submit" id="relsend">Send to Justin</button>
+        <button class="submit" id="relsend">Send request</button>
         <div class="banner" id="relbanner"></div>
       </div>
     </div>
@@ -307,10 +307,10 @@
     if (!$('reason').value.trim()) return bad(b, 'Please say why, and who you asked.');
     $('relsend').disabled = true; $('relsend').textContent = 'Sending...';
     send('relsubmit', { k: key, eventId: r.value, part: part, reason: $('reason').value }).then(function (d) {
-      $('relsend').disabled = false; $('relsend').textContent = 'Send to Justin';
+      $('relsend').disabled = false; $('relsend').textContent = 'Send request';
       if (!d.ok) return bad(b, d.error);
-      result('Sent to Justin.', d.session, 'This time stays yours until he approves. You will get an email either way.');
-    }).catch(function () { $('relsend').disabled = false; $('relsend').textContent = 'Send to Justin'; bad(b, 'That did not go through. Please try again.'); });
+      result('Release requested.', d.session, 'This time stays yours until it is approved. You will get an email either way.');
+    }).catch(function () { $('relsend').disabled = false; $('relsend').textContent = 'Send request'; bad(b, 'That did not go through. Please try again.'); });
   };
 
   // Approve or decline a release (Justin)

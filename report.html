@@ -114,7 +114,7 @@
     <p id="intro">File this right after the session.</p>
   </div>
 
-  <div id="gate" class="gate">Loading...</div>
+  <div id="gate" class="gate">Loading your report. This can take up to 30 seconds.</div>
 
   <div id="form" style="display:none">
     <div class="steps" id="steps"></div>
@@ -219,6 +219,7 @@
 <script>
   var API = 'https://script.google.com/macros/s/AKfycbyU1b3I5-sXXZJHsYW_B9Q0YHwCE7F_7y1uqC03UcucrjptpEkirO4jn9tSX9FXLrKU/exec';
   var DATA = null, STEP = 0, visited = {};
+  var SID = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   var NO_SESSION = ['No show', 'Canceled by candidate'];
@@ -257,7 +258,7 @@
   else load(preCand);
 
   function load(cand) {
-    $('gate').style.display = 'block'; $('gate').textContent = 'Loading...';
+    $('gate').style.display = 'block'; $('gate').textContent = 'Loading your report. This can take up to 30 seconds.';
     get(API + '?action=rptload&k=' + encodeURIComponent(key) + '&cand=' + encodeURIComponent(cand || ''))
       .then(function (d) {
         if (!d.ok) { $('gate').textContent = d.error || 'This link is not active.'; return; }
@@ -496,10 +497,11 @@
       hardCount: none ? '' : val('hardCount'), hardAmount: none ? '' : val('hardAmount'), softCount: none ? '' : val('softCount'),
       followUps: fuList(), inPingdex: $('inPingdex').checked, closeIds: closeIds, requests: reqList(),
       contacts: val('contacts'), pickList: none ? '' : val('pickList'), nextName: none ? '' : val('nextName'),
-      coaching: none ? '' : $('coaching').value, notes: val('notes'), test: $('test').checked
+      coaching: none ? '' : $('coaching').value, notes: val('notes'), test: $('test').checked, sid: SID
     };
-    var btn = $('next'); btn.disabled = true; btn.textContent = 'Submitting...';
-    send(payload).then(function (d) {
+    var btn = $('next'); btn.disabled = true; btn.textContent = 'Submitting... this can take up to 30 seconds';
+    // A slow or dropped answer is retried once with the same submission ID, so it can never file twice
+    send(payload).catch(function () { return new Promise(function (r) { setTimeout(r, 4000); }).then(function () { return send(payload); }); }).then(function (d) {
       if (!d.ok) throw new Error(d.error || 'Submission failed.');
       var bits = [];
       bits.push(d.slack === 'Posted' ? 'Posted to Slack.' : d.slack === 'Failed' ? 'Saved, but the Slack post failed. Justin has been told.' : 'Saved.');
@@ -509,6 +511,7 @@
       if (d.emailed) bits.push('Campaign requests emailed.');
       $('donesum').textContent = bits.join(' ');
       try { localStorage.removeItem(dkey()); } catch (e) {}
+      SID = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
       $('form').style.display = 'none'; $('done').style.display = 'block'; window.scrollTo(0, 0);
     }).catch(function (err) {
       $('banner').innerHTML = '<b>Your report was not submitted.</b><br>' + esc(err.message) +

@@ -92,6 +92,32 @@
   .qrscr .box { margin-top:32px; width:min(320px, 82vw); }
   .qrscr .box svg { width:100%; height:auto; display:block; }
   .qrscr .pf { text-align:center; font-size:14px; padding-top:16px; border-top:1px solid #000; }
+  /* Call guide, inside the page */
+  .gdscr { display:none; position:fixed; inset:0; z-index:45; background:#fff; overflow:auto; -webkit-overflow-scrolling:touch; }
+  .gdscr .in { max-width:560px; margin:0 auto; padding:18px 20px 64px; }
+  .gdscr .top { display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#fff; padding:6px 0 10px; border-bottom:1px solid #000; z-index:2; }
+  .gdscr h1 { margin:16px 0 10px; }
+  .gd p { margin:8px 0; }
+  .gd h2 { font-size:19px; margin:20px 0 8px; padding-bottom:6px; border-bottom:1px solid #000; }
+  .gd ul { margin:4px 0 0 20px; } .gd li { margin:6px 0; }
+  .gd .who, .gd .lede { padding:12px 14px; border-left:2px solid var(--navy); background:var(--wash); font-weight:500; }
+  .gd .quotes p { padding:10px 12px; border-left:2px solid var(--navy); background:var(--wash); }
+  .gd .hold { margin-top:14px; padding:12px 14px; border:2px solid var(--no); }
+  .gd .hold b { color:var(--no); }
+  .gd table { width:100%; border-collapse:collapse; font-size:15px; margin-top:6px; }
+  .gd th { background:var(--navy); color:#fff; text-align:left; padding:8px; }
+  .gd td { padding:8px; border-bottom:1px solid #000; vertical-align:top; }
+  .gd .steps { display:grid; grid-template-columns:1fr 1fr; border:1px solid #000; margin-top:10px; }
+  .gd .steps div { padding:10px; border-bottom:1px solid #000; font-size:15px; }
+  .gd .steps div:nth-child(odd) { border-right:1px solid #000; }
+  .gd .steps b { display:block; color:var(--navy); }
+  .gd .glink, .gd a { color:var(--navy); font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .gdlist { border:1px solid #000; margin-top:12px; }
+  .gdlist button { display:flex; width:100%; justify-content:space-between; align-items:center; padding:13px 14px; background:#fff; border:0; border-top:1px solid #000; text-align:left; font-weight:600; cursor:pointer; }
+  .gdlist button:first-child { border-top:0; }
+  .gdlist button span { color:var(--navy); }
+  .gdnext { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:26px; }
+  .convbtn { background:none; border:0; padding:0; color:var(--navy); font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
   /* Call list */
   .callbtn { margin-top:22px; }
   .callbtn .n { display:inline-block; min-width:28px; margin-left:8px; padding:0 8px; background:#fff; color:var(--navy); }
@@ -141,6 +167,18 @@
   .donelist div { padding:10px 0; border-top:1px solid #000; font-size:15px; }
   .donelist div:first-child { border-top:0; }
   .empty { padding:16px; border:1px solid #000; text-align:center; }
+  .editbox { display:none; margin:4px 0 14px; padding:12px; border:1px solid #000; background:var(--wash); }
+  .editbox input, .editbox textarea { margin-top:8px; }
+  .editbox .row { margin-top:0; }
+  .editbox label.hol { display:flex; gap:10px; align-items:center; margin-top:12px; font-weight:600; }
+  .editbox label.hol input { width:22px; height:22px; margin:0; }
+  .edlink { margin:0 0 12px; }
+  .pend .res { border-top:1px solid #000; }
+  .pend .res:first-child { border-top:0; }
+  .pend .res > button { border-top:0; }
+  .pend .ra { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 14px 12px; }
+  .pend .ra button { display:block; width:100%; padding:9px 6px; border:1px solid var(--navy); background:#fff; color:var(--navy); font-weight:600; font-size:15px; text-align:center; justify-content:center; }
+  .pend .ra button.done { border-color:var(--field); color:#444; }
   .saved { display:none; padding:12px 14px; border-left:2px solid var(--navy); background:var(--wash); margin-bottom:14px; }
   @media (max-width:440px) { .row { grid-template-columns:1fr; } }
 </style>
@@ -152,6 +190,7 @@
     <h1>Who did you meet?</h1>
     <p id="hi">Add anyone you met, any day.</p>
     <button class="btn callbtn" id="callOpen" type="button" style="display:none">My Calls Today<span class="n" id="callN"></span></button>
+    <button class="btn ghost availbtn" id="guideOpen" type="button" style="display:none">My Call Guide</button>
     <div class="qrrow"><button class="btn" id="qrOpen" type="button" style="display:none">Keep in Touch QR</button><button class="btn" id="qrDonate" type="button" style="display:none">PC Donation QR</button></div>
     <a class="btn ghost availbtn" id="pcBtn" style="display:none" target="_blank" rel="noopener">PC Main Donation Page</a>
     <button class="btn ghost availbtn" id="sendOpen" type="button" style="display:none">Text/Email My Info</button>
@@ -229,7 +268,7 @@
     <h1>My Calls Today</h1>
     <p class="lead" id="callLead">Start at the top. Log each call before you dial the next one.</p>
     <div class="stat"><div><b id="stDue">0</b>To call</div><div><b id="stDone">0</b>Logged today</div><div><b id="stLater">0</b>Coming up</div></div>
-    <a class="btn ghost" id="guideBtn" style="display:none;text-decoration:none" target="_blank" rel="noopener">Open My Call Guide</a>
+    <button class="btn ghost" id="guideBtn" type="button" style="display:none">Open My Call Guide</button>
     <div class="saved" id="callSaved"></div>
     <div id="callGate" class="gate">Loading your calls...</div>
     <div id="callLists"></div>
@@ -243,6 +282,12 @@
       <div class="eye">Logged today</div>
       <div class="donelist" id="doneList" style="margin-top:8px"></div>
     </div>
+  </div>
+</div>
+<div class="gdscr" id="gdScr" role="dialog" aria-label="My call guide">
+  <div class="in">
+    <div class="top"><button class="link" id="gdBack" type="button">All conversations</button><button class="link" id="gdClose" type="button">Close</button></div>
+    <div id="gdBody" class="gd"></div>
   </div>
 </div>
 <div class="cam" id="cam" role="dialog" aria-label="Card photo">
@@ -374,8 +419,9 @@ function search() {
       var meta = p.src === 'todo' ? esc('Saved ' + String(p.when || '').replace(/ (AM|PM)$/, '\u00a0$1')) + (p.match ? '<br>Already in Pingdex' : '')
         : 'In your Pingdex' + (p.list ? ': ' + esc(p.list) : '');
       var sub = [p.employer, p.email, p.phone].filter(String).slice(0, 2).join(', ');
-      return '<button type="button" data-i="' + i + '"><span><span class="nm">' + esc((p.first + ' ' + p.last).trim() || 'Name on card (photo saved)') + '</span><br><span class="meta">' + meta +
-        (sub ? '<br>' + esc(sub) : '') + '</span></span><span class="go">' + (p.src === 'todo' ? 'Open' : 'Add notes') + '</span></button>';
+      return '<div class="res"><button type="button" data-i="' + i + '"><span><span class="nm">' + esc((p.first + ' ' + p.last).trim() || 'Name on card (photo saved)') + '</span><br><span class="meta">' + meta +
+        (sub ? '<br>' + esc(sub) : '') + '</span></span><span class="go">' + (p.src === 'todo' ? 'Open' : 'Add notes') + '</span></button>' +
+        (C.ready ? '<div class="ra"><button type="button" data-add="' + i + '" data-h="0">Add to my calls</button><button type="button" data-add="' + i + '" data-h="1">Holiday call</button></div>' : '') + '</div>';
     }).join('');
   }).catch(function () { if (n === QN) { $('qNote').textContent = 'Please check your connection and try again.'; $('qNote').style.display = 'block'; } });
 }
@@ -510,8 +556,9 @@ if (SID) {
   $('hi').textContent = 'Hi ' + r.first + '. Add anyone you met, any day. One person at a time.';
   $('when').innerHTML = r.when.map(function (w) { return '<button type="button" class="chip" data-v="' + esc(w) + '">' + esc(w) + '</button>'; }).join('');
   if (typeof r.calls === 'number' && r.calls >= 0) {
+    C.ready = true; C.total = r.calls;
     $('callOpen').style.display = 'block'; callCount(r.calls);
-    if (r.guide) { C.guide = r.guide; $('guideBtn').href = r.guide; $('guideBtn').style.display = 'block'; }
+    $('guideOpen').style.display = 'block'; $('guideBtn').style.display = 'block'; GD.pdf = r.guide || '';
     if (new URLSearchParams(location.search).get('view') === 'calls') callShow();
   }
   showEvent(); showPending(); showRecent(); sendFlush(); $('findWrap').style.display = 'block'; reset(); restoreDraft();
@@ -533,6 +580,17 @@ $('form').addEventListener('input', saveDraft);
 $('gave').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (b) setGave(b.getAttribute('data-v')); });
 $('q').addEventListener('input', function () { clearTimeout(QT); QT = setTimeout(search, 350); });
 $('results').addEventListener('click', function (e) {
+  var ad = e.target.closest('[data-add]');
+  if (ad) {
+    var pp = S.results[Number(ad.getAttribute('data-add'))], hol = ad.getAttribute('data-h') === '1';
+    if (ad.disabled) return; ad.disabled = true; ad.textContent = 'Adding...';
+    post({ action: 'calladd', src: pp.src, id: pp.id, holiday: hol }).then(function (r) {
+      if (!r.ok) { ad.disabled = false; ad.textContent = hol ? 'Holiday call' : 'Add to my calls'; $('qNote').textContent = r.error || 'Something went wrong.'; $('qNote').style.display = 'block'; return; }
+      ad.textContent = (r.existing ? 'On your list' : 'Added') + (hol ? ' (holiday)' : '') + ' for today'; ad.classList.add('done');
+      C.total = (C.total || 0) + (r.existing ? 0 : 1); callCount(C.total);
+    }).catch(function () { ad.disabled = false; ad.textContent = hol ? 'Holiday call' : 'Add to my calls'; });
+    return;
+  }
   var b = e.target.closest('button'); if (!b || !b.hasAttribute('data-i')) return;
   var p = S.results[Number(b.getAttribute('data-i'))];
   $('done').style.display = 'none'; $('main').style.display = 'block';
@@ -738,7 +796,7 @@ function callFetch(keepOpen) {
     C.loaded = true; C.calls = r.calls || []; C.done = r.done || []; C.results = r.results || []; C.next = r.next || [];
     C.lists = r.lists || []; C.groups = r.groups || []; C.later = r.later || 0; C.moreLeft = r.moreLeft; C.today = r.today;
     if (C.extra && !C.calls.some(function (c) { return c.id === C.extra.id; })) C.calls.unshift(C.extra);
-    if (r.guide) { $('guideBtn').href = r.guide; $('guideBtn').style.display = 'block'; C.guide = r.guide; }
+    $('guideBtn').style.display = 'block'; if (r.guide) GD.pdf = r.guide;
     if (!keepOpen) C.open = '';
     $('callGate').style.display = 'none';
     callDraw();
@@ -748,7 +806,7 @@ function callCount(n) { $('callN').textContent = n > 0 ? String(n) : ''; $('call
 function callDraw() {
   $('callLead').textContent = prettyDay(C.today) + '. Start at the top. Log each call before you dial the next one.';
   $('stDue').textContent = C.calls.length; $('stDone').textContent = C.done.length; $('stLater').textContent = C.later;
-  callCount(C.calls.length);
+  C.total = C.calls.length; callCount(C.calls.length);
   var html = '', lists = (C.lists && C.lists.length ? C.lists : Object.keys(LIST_SHORT)).filter(function (L) { return C.calls.some(function (c) { return c.list === L; }); });
   if (C.filter && lists.indexOf(C.filter) === -1) C.filter = '';
   if (lists.length > 1) html += '<div class="chips filt" style="margin:6px 0 4px">' + ['All'].concat(lists).map(function (L) {
@@ -781,8 +839,8 @@ function cardHtml(c, num) {
   var mailBody = 'Hi ' + first + ',\n\n' + (pledge
     ? 'Thank you again for your support. Here is the link to give to my political committee:\n' + (PC || '') + '\n\nLet me know once it is in.'
     : 'I just tried calling you. Give me a call back when you have a minute.') + '\n\nThank you,\nMitch';
-  var gp = GUIDE_PAGES[c.conv];
-  var guideLine = c.conv ? '<div class="guideline">Conversation: <b>' + esc(c.conv) + '</b>' + (gp && C.guide ? ' (<a href="' + esc(C.guide) + '" target="_blank" rel="noopener">guide, page ' + gp + '</a>)' : '') + '</div>' : '';
+  var sec = CONV_SEC[c.conv];
+  var guideLine = c.conv ? '<div class="guideline">Conversation: <b>' + esc(c.conv) + '</b>' + (sec ? ' <button class="convbtn" type="button" data-gopen="' + sec + '">Open the talking points</button>' : '') + '</div>' : '';
   var tags = [];
   if (c.list) tags.push('<span class="tag">' + esc(LIST_SHORT[c.list] || c.list) + '</span>');
   if (c.conv && c.conv !== LIST_SHORT[c.list]) tags.push('<span class="tag">' + esc(c.conv) + '</span>');
@@ -803,6 +861,15 @@ function cardHtml(c, num) {
         '<a class="' + (tel ? '' : 'off') + '" href="' + (tel ? 'sms:' + tel + '?&body=' + encodeURIComponent(smsBody) : '#') + '">Text</a>' +
         '<a class="' + (c.email ? '' : 'off') + '" href="' + (c.email ? 'mailto:' + encodeURIComponent(c.email) + '?subject=' + encodeURIComponent(pledge ? 'Thank you' : 'Following up') + '&body=' + encodeURIComponent(mailBody) : '#') + '">Email</a>' +
       '</div>' +
+      '<div class="edlink"><button class="link" type="button" data-k="editopen">Edit their info or notes</button></div>' +
+      '<div class="editbox" data-edit="' + esc(c.id) + '">' +
+        '<div class="row"><input data-e="phone" type="tel" inputmode="tel" placeholder="Phone" value="' + esc(c.phone) + '"><input data-e="email" type="email" inputmode="email" autocapitalize="off" placeholder="Email" value="' + esc(c.email) + '"></div>' +
+        '<input data-e="org" placeholder="Where they work, or who they are" value="' + esc(c.org) + '">' +
+        '<textarea data-e="why" style="min-height:110px" placeholder="Your notes on them">' + esc(c.why) + '</textarea>' +
+        '<label class="hol"><input type="checkbox" data-e="holiday"' + (c.conv === 'Holiday call' ? ' checked' : '') + '> Make this a holiday call</label>' +
+        '<div class="row" style="margin-top:12px"><button class="btn small" type="button" data-k="editsave">Save changes</button><button class="btn small ghost" type="button" data-k="editcancel">Cancel</button></div>' +
+        '<div class="bad" data-k="ebad"></div>' +
+      '</div>' +
       '<div class="logbox" data-log="' + esc(c.id) + '">' +
         '<div class="eye">What happened?</div><div class="chips" data-k="result">' + C.results.map(function (x) { return '<button type="button" class="chip" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
         '<div class="money" data-k="amtwrap" style="display:none"><span>$</span><input data-k="amount" inputmode="decimal" placeholder="Amount"></div>' +
@@ -821,6 +888,8 @@ function pickChip(box, k, v) {
 }
 function chipVal(box, k) { var b = box.querySelector('[data-k="' + k + '"] .chip.on'); return b ? b.getAttribute('data-v') : ''; }
 $('callLists').addEventListener('click', function (e) {
+  var go = e.target.closest('[data-gopen]');
+  if (go) { gdOpen(go.getAttribute('data-gopen')); return; }
   var f = e.target.closest('[data-f]');
   if (f) { C.filter = f.getAttribute('data-f'); C.open = ''; callDraw(); return; }
   var top = e.target.closest('button.top');
@@ -829,6 +898,13 @@ $('callLists').addEventListener('click', function (e) {
     Array.prototype.forEach.call(document.querySelectorAll('.card.open'), function (x) { x.classList.remove('open'); });
     if (!was) { card.classList.add('open'); C.open = id; setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); } else C.open = '';
     return;
+  }
+  var ek = e.target.closest('[data-k="editopen"],[data-k="editcancel"],[data-k="editsave"]');
+  if (ek) {
+    var card = ek.closest('.card'), eb = card.querySelector('.editbox'), k = ek.getAttribute('data-k');
+    if (k === 'editopen') { eb.style.display = eb.style.display === 'block' ? 'none' : 'block'; return; }
+    if (k === 'editcancel') { eb.style.display = 'none'; return; }
+    return callEditSave(eb);
   }
   var chip = e.target.closest('.chip'); if (!chip) { var sv = e.target.closest('[data-k="save"]'); if (sv) callSave(sv.closest('.logbox')); return; }
   var box = chip.closest('.logbox'), grp = chip.parentNode.getAttribute('data-k'), v = chip.getAttribute('data-v');
@@ -865,6 +941,21 @@ function callSave(box) {
     callFetch().then(function () { $('callScr').scrollTop = 0; });
   }).catch(function () { btn.disabled = false; btn.textContent = 'Save'; no("Your signal may be slow and we couldn't confirm the save. Tap Save again. It won't save twice."); });
 }
+function callEditSave(eb) {
+  var id = eb.getAttribute('data-edit'), bad = eb.querySelector('[data-k="ebad"]'), btn = eb.querySelector('[data-k="editsave"]');
+  var v = function (k) { return eb.querySelector('[data-e="' + k + '"]').value.trim(); };
+  var d = { action: 'calledit', id: id, phone: v('phone'), email: v('email'), org: v('org'), why: v('why'), holiday: eb.querySelector('[data-e="holiday"]').checked };
+  bad.style.display = 'none';
+  if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) { bad.textContent = 'Check the email address.'; bad.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Saving...';
+  post(d).then(function (r) {
+    btn.disabled = false; btn.textContent = 'Save changes';
+    if (!r.ok) { bad.textContent = r.error || 'Something went wrong.'; bad.style.display = 'block'; return; }
+    $('callSaved').textContent = r.changed && r.changed.length ? 'Saved: ' + r.name + ' (' + r.changed.join(', ') + ').' : 'No changes to save.';
+    $('callSaved').style.display = 'block';
+    C.open = id; callFetch(true).then(function () { $('callScr').scrollTop = 0; });
+  }).catch(function () { btn.disabled = false; btn.textContent = 'Save changes'; bad.textContent = 'Please check your connection and try again.'; bad.style.display = 'block'; });
+}
 $('moreBtn').addEventListener('click', function () {
   var b = $('moreBtn'); b.disabled = true; b.textContent = 'Finding your next 10...'; $('moreBad').style.display = 'none';
   post({ action: 'callmore' }).then(function (r) {
@@ -881,6 +972,49 @@ function openCallFromSearch(p) {
   }).catch(function () {});
 }
 $('callOpen').addEventListener('click', function () { callShow(); });
+// ---------- My Call Guide (talking points), loaded from the script behind his key ----------
+var GD = { data: null, pdf: '' };
+var CONV_SEC = { 'Inner circle': 'inner', 'Personal': 'personal', 'Past donor': 'pastdonor', 'Lobbyist': 'lobbyist', 'Association or PAC': 'assoc',
+  'Labor': 'labor', 'Pledge': 'pledge', 'Holding a commitment': 'hold', 'New contact': 'newc', 'Elected or endorser': 'elected',
+  'Host or connector': 'host', 'Holiday call': 'holiday' };
+function gdLoad() {
+  if (GD.data) return Promise.resolve(GD.data);
+  return fetch(API + '?action=guide&k=' + encodeURIComponent(K)).then(function (x) { return x.json(); }).then(function (r) { if (r.ok) GD.data = r.guide; return GD.data; });
+}
+function gdOpen(sec) {
+  $('gdScr').style.display = 'block'; document.body.style.overflow = 'hidden';
+  $('gdBody').innerHTML = '<p>Loading your guide...</p>';
+  gdLoad().then(function (g) {
+    if (!g) { $('gdBody').innerHTML = '<p>Your guide is not available right now. Please try again.</p>'; return; }
+    if (sec) gdShow(sec); else gdHome();
+  }).catch(function () { $('gdBody').innerHTML = '<p>Please check your connection and try again.</p>'; });
+}
+function gdHome() {
+  var g = GD.data; $('gdBack').style.visibility = 'hidden';
+  var convs = g.sections.filter(function (s) { return CONV_SEC[s.title] || /^(inner|personal|pastdonor|lobbyist|assoc|labor|pledge|hold|newc|elected|host|holiday)$/.test(s.id); });
+  var more = g.sections.filter(function (s) { return convs.indexOf(s) === -1; });
+  $('gdBody').innerHTML = '<h1>My Call Guide</h1><div class="lede">' + g.lede + '</div><div class="steps">' + g.steps + '</div>' +
+    '<h2>Pick the conversation</h2><div class="gdlist">' + convs.map(function (s) { return '<button type="button" data-g="' + s.id + '">' + esc(s.title) + '<span>Open</span></button>'; }).join('') + '</div>' +
+    '<h2>Know it cold</h2><div class="gdlist">' + more.map(function (s) { return '<button type="button" data-g="' + s.id + '">' + esc(s.title) + '<span>Open</span></button>'; }).join('') + '</div>' +
+    (GD.pdf ? '<p style="margin-top:20px"><a href="' + esc(GD.pdf) + '" target="_blank" rel="noopener">Open the PDF version</a></p>' : '');
+  $('gdScr').scrollTop = 0;
+}
+function gdShow(id) {
+  var g = GD.data, i = g.sections.findIndex(function (s) { return s.id === id; });
+  if (i === -1) return gdHome();
+  var s = g.sections[i], prev = g.sections[i - 1], next = g.sections[i + 1];
+  $('gdBack').style.visibility = 'visible';
+  $('gdBody').innerHTML = '<h1>' + esc(s.title) + '</h1>' + s.html +
+    '<div class="gdnext">' + (prev ? '<button class="btn small ghost" type="button" data-g="' + prev.id + '">' + esc(prev.title) + '</button>' : '<span></span>') +
+    (next ? '<button class="btn small ghost" type="button" data-g="' + next.id + '">' + esc(next.title) + '</button>' : '') + '</div>';
+  $('gdScr').scrollTop = 0;
+}
+$('gdBody').addEventListener('click', function (e) { var a = e.target.closest('[data-g]'); if (a) { e.preventDefault(); gdShow(a.getAttribute('data-g')); } });
+$('gdBack').addEventListener('click', gdHome);
+$('gdClose').addEventListener('click', function () { $('gdScr').style.display = 'none'; if ($('callScr').style.display !== 'block') document.body.style.overflow = ''; });
+$('guideOpen').addEventListener('click', function () { gdOpen(); });
+$('guideBtn').addEventListener('click', function () { gdOpen(); });
+
 $('callClose').addEventListener('click', callHide);
 </script>
 </body>

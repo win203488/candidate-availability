@@ -976,7 +976,7 @@ $('callOpen').addEventListener('click', function () { callShow(); });
 var GD = { data: null, pdf: '' };
 var CONV_SEC = { 'Inner circle': 'inner', 'Personal': 'personal', 'Past donor': 'pastdonor', 'Lobbyist': 'lobbyist', 'Association or PAC': 'assoc',
   'Labor': 'labor', 'Pledge': 'pledge', 'Holding a commitment': 'hold', 'New contact': 'newc', 'Elected or endorser': 'elected',
-  'Host or connector': 'host', 'Holiday call': 'holiday' };
+  'Host or connector': 'host', 'Holiday call': 'holiday', 'Jewish community': 'jewish' };
 function gdLoad() {
   if (GD.data) return Promise.resolve(GD.data);
   return fetch(API + '?action=guide&k=' + encodeURIComponent(K)).then(function (x) { return x.json(); }).then(function (r) { if (r.ok) GD.data = r.guide; return GD.data; });
@@ -991,7 +991,7 @@ function gdOpen(sec) {
 }
 function gdHome() {
   var g = GD.data; $('gdBack').style.visibility = 'hidden';
-  var convs = g.sections.filter(function (s) { return CONV_SEC[s.title] || /^(inner|personal|pastdonor|lobbyist|assoc|labor|pledge|hold|newc|elected|host|holiday)$/.test(s.id); });
+  var convs = g.sections.filter(function (s) { return CONV_SEC[s.title] || /^(inner|personal|jewish|pastdonor|lobbyist|assoc|labor|pledge|hold|newc|elected|host|holiday)$/.test(s.id); });
   var more = g.sections.filter(function (s) { return convs.indexOf(s) === -1; });
   $('gdBody').innerHTML = '<h1>My Call Guide</h1><div class="lede">' + g.lede + '</div><div class="steps">' + g.steps + '</div>' +
     '<h2>Pick the conversation</h2><div class="gdlist">' + convs.map(function (s) { return '<button type="button" data-g="' + s.id + '">' + esc(s.title) + '<span>Open</span></button>'; }).join('') + '</div>' +
